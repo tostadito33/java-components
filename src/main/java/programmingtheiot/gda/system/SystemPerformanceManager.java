@@ -38,7 +38,10 @@ public class SystemPerformanceManager
 	private SystemMemUtilTask sysMemUtilTask = null;
 	
 	private Runnable taskRunner = null;
-	private boolean isStarted = false; 
+	private boolean isStarted = false;
+
+	private String locationID = ConfigConst.NOT_SET;
+	private IDataMessageListener dataMsgListener = null;
 
 	// constructors
 	
@@ -59,6 +62,8 @@ public class SystemPerformanceManager
 		this.taskRunner = () -> {
 			this.handleTelemetry();
 		};
+
+		this.locationID = ConfigUtil.getInstance().getProperty(ConfigConst.GATEWAY_DEVICE, ConfigConst.LOCATION_ID_PROP, ConfigConst.NOT_SET);
 	}
 	
 	
@@ -71,10 +76,23 @@ public class SystemPerformanceManager
 	
 		// NOTE: you may need to change the logging level to 'info' to see the message
 		_Logger.info("CPU utilization: " + cpuUtil + ", Mem utilization: " + memUtil);
+
+		SystemPerformanceData spd = new SystemPerformanceData();
+		spd.setLocationID(this.locationID);
+		spd.setCpuUtilization(cpuUtil);
+		spd.setMemoryUtilization(memUtil);
+	
+		if (this.dataMsgListener != null) {
+			this.dataMsgListener.handleSystemPerformanceMessage(
+				ResourceNameEnum.GDA_SYSTEM_PERF_MSG_RESOURCE, spd);
+		}
 	}
 	
 	public void setDataMessageListener(IDataMessageListener listener)
 	{
+		if (listener != null) {
+			this.dataMsgListener = listener;
+		}
 	}
 	
 	public boolean startManager()
