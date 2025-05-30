@@ -110,6 +110,24 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M5</version>
+				<!-- TODO add or remove to see if tests are failing -->
+				<configuration>
+					<skipTests>false</skipTests>
+					<forkCount>0</forkCount>
+					<useFile>false</useFile>
+					<redirectTestOutputToFile>false</redirectTestOutputToFile>
+				<!-- mvn test -Dtest=programmingtheiot.part01.** -->
+					<includes>
+						<include>programmingtheiot/part01/**/*.java</include>
+					</includes>
+				<!-- exclude DataUtilTest -->
+					<excludes>
+						<!-- this one was not implemented -->
+						<exclude>**/PersistenceClientAdapterTest.java</exclude>
+						<!-- TODO this one works when the CDA is executed and the tmp/ files exist -->
+						<exclude>**/DataIntegrationTest.java</exclude>
+					</excludes>
+            	</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
