@@ -1,0 +1,4 @@
+Timestamp: 2025-05-30 12:01:33
+Sensor - Temperature: 27.4°C
+System - CPU: 22.6%, RAM: 41.2%, Disk: 66.0%
+Actuator: Fan ON
