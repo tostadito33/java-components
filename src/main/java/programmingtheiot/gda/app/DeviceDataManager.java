@@ -66,26 +66,29 @@
 	 public DeviceDataManager()
 	 {
 		 super();
- 
+
+		 
+		 initConnections();
+		 
 		 ConfigUtil configUtil = ConfigUtil.getInstance();
  
-		 this.enableMqttClient =
-			 configUtil.getBoolean(
-				 ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_MQTT_CLIENT_KEY);
+	 this.enableMqttClient =
+		 configUtil.getBoolean(
+			 ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_MQTT_CLIENT_KEY);
  
-		 this.enableCoapServer =
-			 configUtil.getBoolean(
-				 ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_COAP_SERVER_KEY);
+	 this.enableCoapServer =
+		 configUtil.getBoolean(
+			 ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_COAP_SERVER_KEY);
  
-		 this.enableCloudClient =
-			 configUtil.getBoolean(
-				 ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_CLOUD_CLIENT_KEY);
+	 this.enableCloudClient =
+		 configUtil.getBoolean(
+			 ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_CLOUD_CLIENT_KEY);
  
-		 this.enablePersistenceClient =
-			 configUtil.getBoolean(
-				 ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_PERSISTENCE_CLIENT_KEY);
+	 this.enablePersistenceClient =
+		 configUtil.getBoolean(
+			 ConfigConst.GATEWAY_DEVICE, ConfigConst.ENABLE_PERSISTENCE_CLIENT_KEY);
  
-		 initManager();
+	 initManager();
 	 }
 	 
 	 public DeviceDataManager(
@@ -131,13 +134,9 @@
 	 @Override
 	 public boolean handleIncomingMessage(ResourceNameEnum resourceName, String msg)
 	 {
-		 if (msg != null) {
-			 _Logger.info("Handling incoming generic message: " + msg);
-	 
-			 return true;
-		 } else {
-			 return false;
-		 }
+
+		 return false;
+
 	 }
  
 	 @Override
@@ -174,6 +173,13 @@
 	 
 	 public void setActuatorDataListener(String name, IActuatorDataListener listener)
 	 {
+
+		 if (listener !=null) {
+			 // for now, just ignore 'name' - if you need more than one listener,
+			 // you can use 'name' to create a map of listener instances
+			 this.actuatorDataListener =listener;
+				 }
+
 	 }
 	 
 	 public void startManager()
@@ -181,14 +187,16 @@
 		 if (this.mqttClient != null) {
 			 if (this.mqttClient.connectClient()) {
 				 _Logger.info("Successfully connected MQTT client to broker.");
- 
+
+	 
 				 // add necessary subscriptions
- 
+	 
 				 // TODO: read this from the configuration file
 				 int qos = ConfigConst.DEFAULT_QOS;
- 
+	 
 				 // TODO: check the return value for each and take appropriate action
- 
+	 
+
 				 // IMPORTANT NOTE: The 'subscribeToTopic()' method calls shown
 				 // below will be moved to MqttClientConnector.connectComplete()
 				 // in Lab Module 10. For now, they can remain here.
@@ -198,13 +206,23 @@
 				 this.mqttClient.subscribeToTopic(ResourceNameEnum.CDA_SYSTEM_PERF_MSG_RESOURCE, qos);
 			 } else {
 				 _Logger.severe("Failed to connect MQTT client to broker.");
- 
+
+	 
 				 // TODO: take appropriate action
 			 }
 		 }
- 
+	 
 		 if (this.sysPerfMgr != null) {
 			 this.sysPerfMgr.startManager();
+		 }	
+ 
+		 if (this.enableCoapServer && this.coapServer != null) {
+			 if (this.coapServer.startServer()) {
+				 _Logger.info("CoAP server started.");
+			 } else {
+				 _Logger.severe("Failed to start CoAP server. Check log file for details.");
+			 }
+
 		 }
 	 }
 	 
@@ -213,12 +231,14 @@
 		 if (this.sysPerfMgr != null) {
 			 this.sysPerfMgr.stopManager();
 		 }
- 
+
+	 
 		 if (this.mqttClient != null) {
 			 // add necessary un-subscribes
- 
+	 
 			 // TODO: check the return value for each and take appropriate action
- 
+	 
+
 			 // NOTE: The unsubscribeFromTopic() method calls below should match with
 			 // the subscribeToTopic() method calls from startManager(). Also, the
 			 // unsubscribe logic below can be moved to MqttClientConnector's
@@ -228,16 +248,27 @@
 			 this.mqttClient.unsubscribeFromTopic(ResourceNameEnum.CDA_ACTUATOR_RESPONSE_RESOURCE);
 			 this.mqttClient.unsubscribeFromTopic(ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE);
 			 this.mqttClient.unsubscribeFromTopic(ResourceNameEnum.CDA_SYSTEM_PERF_MSG_RESOURCE);
- 
+
 			 if (this.mqttClient.disconnectClient()) {
 				 _Logger.info("Successfully disconnected MQTT client from broker.");
 			 } else {
 				 _Logger.severe("Failed to disconnect MQTT client from broker.");
- 
+
+	 
 				 // TODO: take appropriate action
 			 }
 		 }
+ 
+		 if (this.enableCoapServer && this.coapServer != null) {
+			 if (this.coapServer.stopServer()) {
+				 _Logger.info("CoAP server stopped.");
+			 } else {
+				 _Logger.severe("Failed to stop CoAP server. Check log file for details.");
+			 }
+		 }
 	 }
+ 
+
 	 
 	 // private methods
 	 
@@ -249,7 +280,7 @@
 	 private void initConnections()
 	 {
 	 }
-	 
+
 	 private void initManager()
  {
 	 ConfigUtil configUtil = ConfigUtil.getInstance();
@@ -270,7 +301,11 @@
 	 }
  
 	 if (this.enableCoapServer) {
-		 // TODO: implement this in Lab Module 8
+
+		 if (this.enableCoapServer) {
+			 this.coapServer = new CoapServerGateway(this);
+		 }
+
 	 }
  
 	 if (this.enableCloudClient) {
@@ -284,17 +319,28 @@
  
 	 private void handleIncomingDataAnalysis(ResourceNameEnum resourceName, ActuatorData data)
 	 {
-		 _Logger.fine("handleIncomingDataAnalysis method called.");
-	 }
+
+		 _Logger.info("Analyzing incoming actuator data: " +data.getName());
  
+		 if (data.isResponseFlagEnabled()) {
+		 // TODO: implement this
+			 }else {
+		 if (this.actuatorDataListener !=null) {
+		 this.actuatorDataListener.onActuatorDataUpdate(data);
+				 }
+		 }
+	 }
+	 
 	 private void handleIncomingDataAnalysis(ResourceNameEnum resourceName, SystemStateData data)
 	 {
-		 _Logger.fine("handleIncomingDataAnalysis method called.");
+ 
+
 	 }
  
 	 private boolean handleUpstreamTransmission(ResourceNameEnum resourceName, String jsonData, int qos)
 	 {
-		 _Logger.fine("handleUpstreamTransmission method called.");
-		 return true;
-	 }	
+
+		 return false;
+	 }
+
  }
