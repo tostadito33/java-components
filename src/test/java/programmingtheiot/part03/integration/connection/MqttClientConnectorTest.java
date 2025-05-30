@@ -21,8 +21,10 @@
  import programmingtheiot.common.ConfigUtil;
  import programmingtheiot.common.IDataMessageListener;
  import programmingtheiot.common.ResourceNameEnum;
+
  import programmingtheiot.data.ActuatorData;
  import programmingtheiot.data.DataUtil;
+
  import programmingtheiot.gda.connection.*;
  
  /**
@@ -75,7 +77,9 @@
 	 /**
 	  * Test method for {@link programmingtheiot.gda.connection.MqttClientConnector#connectClient()}.
 	  */
+
 	 //@Test
+
 	 public void testConnectAndDisconnect()
 	 {
 		 int delay = ConfigUtil.getInstance().getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE);
@@ -96,7 +100,9 @@
 	 /**
 	  * Test method for {@link programmingtheiot.gda.connection.MqttClientConnector#publishMessage(programmingtheiot.common.ResourceNameEnum, java.lang.String, int)}.
 	  */
+
 	 // @Test
+
 	 public void testPublishAndSubscribe()
 	 {
 		 int qos = 0;
@@ -237,6 +243,7 @@
 		 
 		 assertTrue(this.mqttClient.disconnectClient());
 	 }
+
 	 @Test
  public void testActuatorCommandResponseSubscription()
  {
@@ -272,4 +279,5 @@
 		 // ignore
 	 }
  }
+
  }

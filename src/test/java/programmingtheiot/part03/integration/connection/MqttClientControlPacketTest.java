@@ -5,7 +5,7 @@
  * found in the LICENSE file at the top level of this repository.
  * 
  * Copyright (c) 2020 by Andrew D. King
- */
+
 
  package programmingtheiot.part03.integration.connection;
 
@@ -26,6 +26,7 @@
  
  /**
   * This test case class contains very basic integration tests for
+
   * MqttClientControlPacketTest. It should not be considered complete, but serve
   * as a starting point for the student implementing additional functionality
   * within their Programming the IoT environment.
@@ -113,4 +114,5 @@
 		 _Logger.info("testPubSub() is complete.");
 	 }
  
+
  }

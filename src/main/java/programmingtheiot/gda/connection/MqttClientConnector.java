@@ -15,7 +15,9 @@
  import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
  import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
  import org.eclipse.paho.client.mqttv3.MqttClient;
+
  import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
+
  import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
  import org.eclipse.paho.client.mqttv3.MqttException;
  import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -27,12 +29,14 @@
  import programmingtheiot.common.ConfigUtil;
  import programmingtheiot.common.IDataMessageListener;
  import programmingtheiot.common.ResourceNameEnum;
+
  import java.io.File;
  import javax.net.ssl.SSLSocketFactory;
  
  import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
  
  import programmingtheiot.common.SimpleCertManagementUtil;
+
  
  /**
   * Shell representation of class for student implementation.
@@ -46,9 +50,11 @@
 		 Logger.getLogger(MqttClientConnector.class.getName());
 	 
 	 // params
+
 	 private boolean useAsyncClient = true;
  
 	 private MqttAsyncClient      mqttClient = null;
+
 	 private MqttConnectOptions   connOpts = null;
 	 private MemoryPersistence    persistence = null;
 	 private IDataMessageListener dataMsgListener = null;
@@ -59,12 +65,14 @@
 	 private String  protocol = ConfigConst.DEFAULT_MQTT_PROTOCOL;
 	 private int     port = ConfigConst.DEFAULT_MQTT_PORT;
 	 private int     brokerKeepAlive = ConfigConst.DEFAULT_KEEP_ALIVE;
+
  
 	 private String pemFileName = null;
 	 private boolean enableEncryption = false;
 	 private boolean useCleanSession = false;
 	 private boolean enableAutoReconnect = true;
 		 
+
 	 // constructors
 	 
 	 /**
@@ -75,9 +83,11 @@
 	 {
 		 super();
  
+
 		 initClientParameters(ConfigConst.MQTT_GATEWAY_SERVICE);
 	 }
 	 
+
 	 
 	 // public methods
 	 
@@ -86,33 +96,40 @@
 	 {
 		 try {
 			 if (this.mqttClient == null) {
+
 				 // NOTE: MQTT client updated to use async client vs sync client
 					 this.mqttClient = new MqttAsyncClient(this.brokerAddr, this.clientID, this.persistence);
 		 //			this.mqttClient = new MqttClient(this.brokerAddr, this.clientID, this.persistence);
  
+
+
 				 this.mqttClient.setCallback(this);
 			 }
  
 			 if (! this.mqttClient.isConnected()) {
 				 _Logger.info("MQTT client connecting to broker: " + this.brokerAddr);
+
  
 				 this.mqttClient.connect(this.connOpts);
  
 				 // NOTE: When using the async client, returning 'true' here doesn't mean
 				 // the client is actually connected - yet. Use the connectComplete() callback
 				 // to determine result of connectClient().
+
 				 return true;
 			 } else {
 				 _Logger.warning("MQTT client already connected to broker: " + this.brokerAddr);
 			 }
 		 } catch (MqttException e) {
 			 // TODO: handle this exception
+
  
 			 _Logger.log(Level.SEVERE, "Failed to connect MQTT client to broker: " + this.brokerAddr, e);
 		 }
  
 		 return false;
  }
+
  
 	 @Override
 	 public boolean disconnectClient()
@@ -131,20 +148,23 @@
 			 // TODO: handle this exception
 			 _Logger.log(Level.SEVERE, "Failed to disconnect MQTT client from broker: " + this.brokerAddr, e);
 		 }
-	 
+
 		 return false;
 	 }
  
 	 public boolean isConnected()
 	 {
+
 		 // TODO: this logic for use with the synchronous `MqttClient` instance only
 		 return (this.mqttClient !=null &&this.mqttClient.isConnected());
+
 	 }
 	 
 	 @Override
 	 public boolean publishMessage(ResourceNameEnum topicName, String msg, int qos)
 	 {
 		 // TODO: determine how verbose your logging should be, especially if this method is called often
+
 		 if (topicName ==null) {
 			 _Logger.warning("Resource is null. Unable to publish message: " +this.brokerAddr);
 			 return false;
@@ -170,11 +190,13 @@
 				 }
 			 
 			 return false;
+
 	 }
  
 	 @Override
 	 public boolean subscribeToTopic(ResourceNameEnum topicName, int qos)
 	 {
+
 		 if (topicName ==null) {
 			 _Logger.warning("Resource is null. Unable to subscribe to topic: " +this.brokerAddr);
 			 return false;
@@ -213,30 +235,34 @@
 			 
 			 return 	false;
 	 }
+
  
 	 @Override
 	 public boolean setConnectionListener(IConnectionListener listener)
 	 {
 		 return false;
 	 }
+
 	 
 	 @Override
+
 	 public boolean setDataMessageListener(IDataMessageListener listener)
 	 {
 		 if (listener != null) {
 			 this.dataMsgListener = listener;
 			 return true;
 		 }
-	 
+
 		 return false;
 	 }
 	 
 	 // callbacks
-	 
+
 	 @Override
 	 public void connectComplete(boolean reconnect, String serverURI)
 	 {
 		 _Logger.info("MQTT connection successful (is reconnect = " + reconnect + "). Broker: " + serverURI);
+
  
 		 int qos = 1;
  
@@ -246,6 +272,7 @@
  
 		 // IMPORTANT NOTE: You'll have to parse each message type in the callback method
 		 // `public void messageArrived(String topic, MqttMessage msg) throws Exception`
+
 	 }
  
 	 @Override
@@ -257,17 +284,21 @@
 	 @Override
 	 public void deliveryComplete(IMqttDeliveryToken token)
 	 {
+
 		 // TODO: Logging level may need to be adjusted to see output in log file / console
+
 		 _Logger.fine("Delivered MQTT message with ID: " + token.getMessageId());
 	 }
 	 
 	 @Override
+
 	 public void messageArrived(String topic, MqttMessage msg) throws Exception
 	 {
 		 // TODO: Logging level may need to be adjusted to reduce output in log file / console
 		 _Logger.info("MQTT message arrived on topic: '" + topic + "'");
 	 }
  
+
 	 
 	 // private methods
 	 
@@ -279,6 +310,7 @@
 	  */
 	 private void initClientParameters(String configSectionName)
 	 {
+
 		 ConfigUtil configUtil = ConfigUtil.getInstance();
  
 		 this.host =
@@ -344,6 +376,7 @@
 		 this.brokerAddr  = this.protocol + "://" + this.host + ":" + this.port;
  
 		 _Logger.info("Using URL for broker conn: " + this.brokerAddr);
+
 	 }
 	 
 	 /**
@@ -354,6 +387,7 @@
 	  */
 	 private void initCredentialConnectionParameters(String configSectionName)
 	 {
+
 		 ConfigUtil configUtil = ConfigUtil.getInstance();
  
 		 try {
@@ -372,6 +406,7 @@
 		 } catch (Exception e) {
 			 _Logger.log(Level.WARNING, "Credential file non-existent. Disabling auth requirement.");
 		 }
+
 	 }
 	 
 	 /**
@@ -382,6 +417,7 @@
 	  */
 	 private void initSecureConnectionParameters(String configSectionName)
 	 {
+
 		 ConfigUtil configUtil = ConfigUtil.getInstance();
  
 		 try {
@@ -419,5 +455,6 @@
  
 			 this.enableEncryption = false;
 		 }
+
 	 }
  }
